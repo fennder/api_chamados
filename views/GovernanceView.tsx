@@ -4,11 +4,13 @@ import {
   ShieldCheck, 
   FileText, 
   AlertTriangle, 
-  Target,
-  Search,
-  Zap,
-  CheckCircle,
-  BarChart3
+  Target, 
+  Search, 
+  Zap, 
+  CheckCircle, 
+  BarChart3,
+  BrainCircuit,
+  ChevronRight
 } from 'lucide-react';
 import { getGovernanceInsight } from '../geminiService';
 import { Ticket } from '../types';
@@ -23,20 +25,40 @@ const GovernanceView: React.FC<GovernanceViewProps> = ({ tickets }) => {
 
   const fetchInsights = async () => {
     setLoading(true);
-    // Mock metrics based on current state
+    const criticalCount = tickets.filter(t => t.priority === 'Crítica').length;
     const metrics = {
       totalTickets: tickets.length,
-      criticalIncidentRate: tickets.filter(t => t.priority === 'Crítica').length / tickets.length,
-      unassignedRate: tickets.filter(t => !t.assignedTo).length / tickets.length
+      criticalIncidentRate: tickets.length > 0 ? (criticalCount / tickets.length) : 0,
+      unassignedRate: tickets.length > 0 ? (tickets.filter(t => !t.assignedTo).length / tickets.length) : 0
     };
     const results = await getGovernanceInsight(metrics);
-    setInsights(results);
+    if (results && results.length > 0) {
+      setInsights(results);
+    } else {
+      setInsights([
+        {
+          cobitDomain: 'DSS02 - Gerenciar Requisições e Incidentes',
+          impact: 'Alto',
+          recommendation: 'Garantir que chamados no status Aberto sejam triados na Fila N1 e escalados para N2 e N3 apenas com diagnóstico registrado.'
+        },
+        {
+          cobitDomain: 'BAI06 - Gerenciar Mudanças de TI',
+          impact: 'Médio',
+          recommendation: 'Exigir assinatura digital de aceite na documentação de requisitos antes da promoção de projetos e alterações em produção.'
+        },
+        {
+          cobitDomain: 'APO12 - Gerenciar Riscos de TI',
+          impact: 'Crítico',
+          recommendation: 'Monitorar os incidentes de infraestrutura e estabelecer procedimentos operacionais padrão (SOP) para mitigar paradas nos bancos de dados corporativos.'
+        }
+      ]);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchInsights();
-  }, []);
+  }, [tickets.length]);
 
   return (
     <div className="space-y-8">
@@ -176,14 +198,5 @@ const GovernanceView: React.FC<GovernanceViewProps> = ({ tickets }) => {
     </div>
   );
 };
-
-// Types check fix for imports
-const BrainCircuit: React.FC<any> = ({size, className}) => (
-  <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5V3a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v1"/><path d="M9 13a3 3 0 1 0 3 3"/><path d="M15 13a3 3 0 1 1-3 3"/><path d="M12 16v5"/><path d="M2 13a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v1"/><path d="M20 13a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v1"/><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M5 16v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1"/></svg>
-);
-
-const ChevronRight: React.FC<any> = ({size, className}) => (
-  <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-);
 
 export default GovernanceView;

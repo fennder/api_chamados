@@ -622,6 +622,7 @@ const TicketsView: React.FC<TicketsViewProps> = ({
   const [groupByCompany, setGroupByCompany] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
   const [selectedQueueFilter, setSelectedQueueFilter] = useState<'ALL' | 'N1' | 'N2' | 'N3'>('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
   const [escalatingTarget, setEscalatingTarget] = useState<{ ticket: Ticket; targetQueue: string } | null>(null);
   const [aiAnalysisModal, setAiAnalysisModal] = useState<{ ticket: Ticket, result: any } | null>(null);
   const [ticketToArchive, setTicketToArchive] = useState<string | null>(null);
@@ -717,6 +718,19 @@ const TicketsView: React.FC<TicketsViewProps> = ({
       filtered = filtered.filter(isTicketN2);
     } else if (selectedQueueFilter === 'N3') {
       filtered = filtered.filter(isTicketN3);
+    }
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const lower = searchTerm.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.title.toLowerCase().includes(lower) ||
+        t.id.toLowerCase().includes(lower) ||
+        t.description.toLowerCase().includes(lower) ||
+        t.requester.toLowerCase().includes(lower) ||
+        t.company.toLowerCase().includes(lower) ||
+        t.tags.some(tag => tag.toLowerCase().includes(lower))
+      );
     }
     
     if (!groupByCompany) return { "Todos os Chamados": filtered };
@@ -859,9 +873,30 @@ const TicketsView: React.FC<TicketsViewProps> = ({
           </button>
         </div>
 
-        <div className="text-xs text-slate-500 font-medium hidden lg:flex items-center space-x-1.5">
-          <ShieldCheck size={14} className="text-emerald-500" />
-          <span>Regra Ativa: Status <strong>Aberto</strong> ➔ Fila N1 | Escalar N1 ➔ N2 | Escalar N2 ➔ N3</span>
+        <div className="flex items-center space-x-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Buscar por ID, título, solicitante..."
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="text-xs text-slate-500 font-medium hidden xl:flex items-center space-x-1.5 whitespace-nowrap">
+            <ShieldCheck size={14} className="text-emerald-500" />
+            <span>Status <strong>Aberto</strong> ➔ Fila N1</span>
+          </div>
         </div>
       </div>
 

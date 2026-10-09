@@ -11,6 +11,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings 
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
   const handleSave = () => {
     onUpdateSettings(localSettings);
     setShowSuccess(true);
@@ -81,14 +85,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings 
           </div>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <datalist id="queue-options">
+            <option value="N1 - Suporte Nível 1" />
+            <option value="N2 - Suporte Nível 2" />
+            <option value="N3 - Especialistas" />
+            <option value="Desenvolvimento" />
+            <option value="Change Management" />
+            <option value="PMO" />
+          </datalist>
           {Object.values(Category).map(category => (
             <div key={category} className="flex flex-col space-y-2">
               <label className="text-sm font-medium text-slate-700">{category}</label>
               <input
                 type="text"
+                list="queue-options"
                 className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-500"
                 value={localSettings.categoryQueues[category]}
                 onChange={e => handleQueueChange(category, e.target.value)}
+                placeholder="Selecione ou digite uma fila..."
               />
             </div>
           ))}

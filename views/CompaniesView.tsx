@@ -15,6 +15,7 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, isAdmin, onCre
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [companyToDelete, setCompanyToDelete] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -30,6 +31,7 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, isAdmin, onCre
   );
 
   const openModal = (company?: Company) => {
+    setFormError(null);
     if (company) {
       setEditingCompany(company);
       setFormData({
@@ -54,7 +56,7 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, isAdmin, onCre
 
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('O nome da empresa é obrigatório.');
+      setFormError('O nome da empresa é obrigatório.');
       return;
     }
 
@@ -186,6 +188,11 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, isAdmin, onCre
               </button>
             </div>
             <div className="p-6 space-y-4">
+              {formError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs font-semibold text-red-700 animate-in fade-in">
+                  {formError}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nome da Empresa *</label>
                 <input 

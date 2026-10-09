@@ -38,6 +38,11 @@ import PublicBIView from './views/PublicBIView';
 import OnboardingGuide from './components/OnboardingGuide';
 import { Ticket, TicketStatus, Priority, Category, Company, AppSettings, Project, Attachment, AppNotification, User, UserRole, Announcement, Queue, EscalationRecord } from './types';
 
+export const QUEUE_N1 = 'N1 - Suporte Nível 1';
+export const QUEUE_N2 = 'N2 - Suporte Nível 2';
+export const QUEUE_N3 = 'N3 - Especialistas';
+export const QUEUE_DEV = 'Desenvolvimento';
+
 const INITIAL_COMPANIES: Company[] = [
   { id: 'COMP-1', name: 'Alpha Corp', isActive: true, createdAt: new Date() },
   { id: 'COMP-2', name: 'Beta Soft', isActive: true, createdAt: new Date() },
@@ -45,8 +50,100 @@ const INITIAL_COMPANIES: Company[] = [
 ];
 
 const INITIAL_USERS: User[] = [
-  { id: 'USR-1', name: 'Admin Master', email: 'admin@sistema.com', role: UserRole.ADMIN, companyIds: [], isActive: true, createdAt: new Date(), accessCount: 5 },
-  { id: 'USR-2', name: 'João Responsável', email: 'joao@alpha.com', role: UserRole.MANAGER, companyIds: ['COMP-1'], isActive: true, createdAt: new Date(), accessCount: 0 },
+  { 
+    id: 'USR-1', 
+    name: 'Admin Master', 
+    email: 'admin@sistema.com', 
+    role: UserRole.ADMIN, 
+    companyIds: [], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 15,
+    themeColor: 'blue' 
+  },
+  // Usuário de cada Fila de Atendimento
+  { 
+    id: 'USR-N1', 
+    name: 'Carlos Mendes (Suporte N1)', 
+    email: 'carlos.n1@sistema.com', 
+    role: UserRole.N1, 
+    queue: QUEUE_N1, 
+    companyIds: [], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 8,
+    themeColor: 'blue' 
+  },
+  { 
+    id: 'USR-N2', 
+    name: 'Mariana Costa (Analista N2)', 
+    email: 'mariana.n2@sistema.com', 
+    role: UserRole.N2, 
+    queue: QUEUE_N2, 
+    companyIds: [], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 6,
+    themeColor: 'amber' 
+  },
+  { 
+    id: 'USR-N3', 
+    name: 'Roberto Rocha (Especialista N3)', 
+    email: 'roberto.n3@sistema.com', 
+    role: UserRole.N3, 
+    queue: QUEUE_N3, 
+    companyIds: [], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 5,
+    themeColor: 'purple' 
+  },
+  { 
+    id: 'USR-DEV', 
+    name: 'Lucas Ferreira (Dev Team)', 
+    email: 'lucas.dev@sistema.com', 
+    role: UserRole.DEV, 
+    queue: QUEUE_DEV, 
+    companyIds: [], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 7,
+    themeColor: 'emerald' 
+  },
+  // Usuário Responsável de cada Empresa
+  { 
+    id: 'USR-2', 
+    name: 'João Silva (Resp. Alpha Corp)', 
+    email: 'joao.silva@alpha.com', 
+    role: UserRole.MANAGER, 
+    companyIds: ['COMP-1'], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 4,
+    themeColor: 'blue' 
+  },
+  { 
+    id: 'USR-3', 
+    name: 'Beatriz Ramos (Resp. Beta Soft)', 
+    email: 'beatriz.ramos@beta.com', 
+    role: UserRole.MANAGER, 
+    companyIds: ['COMP-2'], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 3,
+    themeColor: 'indigo' 
+  },
+  { 
+    id: 'USR-4', 
+    name: 'Gabriel Torres (Resp. Gamma Logistics)', 
+    email: 'gabriel.torres@gamma.com', 
+    role: UserRole.MANAGER, 
+    companyIds: ['COMP-3'], 
+    isActive: true, 
+    createdAt: new Date(), 
+    accessCount: 3,
+    themeColor: 'rose' 
+  },
 ];
 
 const INITIAL_ANNOUNCEMENTS: Announcement[] = [
@@ -60,11 +157,6 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     createdBy: 'Sistema'
   }
 ];
-
-export const QUEUE_N1 = 'N1 - Suporte Nível 1';
-export const QUEUE_N2 = 'N2 - Suporte Nível 2';
-export const QUEUE_N3 = 'N3 - Especialistas';
-export const QUEUE_DEV = 'Desenvolvimento';
 
 const INITIAL_SETTINGS: AppSettings = {
   categorySlas: {
@@ -772,18 +864,43 @@ const App: React.FC = () => {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, isArchived: false } : p));
   };
 
+  const handleCreateDirectProject = (data: Partial<Project>) => {
+    const newProject: Project = {
+      id: `PROJ-${1000 + projects.length + 1}`,
+      ticketId: data.ticketId || `PROJ-DIR-${Date.now()}`,
+      title: data.title || 'Novo Projeto',
+      description: data.description || '',
+      company: data.company || (companies[0]?.name || 'Alpha Corp'),
+      status: data.status || 'Planejado',
+      progress: data.progress || 0,
+      manager: data.manager || currentUser.name,
+      createdAt: new Date(),
+      deadline: data.deadline || new Date(Date.now() + 86400000 * 30),
+      documentation: {
+        requirements: data.documentation?.requirements || '## Levantamento de Requisitos\n\n**1. Objetivo do Projeto:**\n[Descreva o objetivo]\n\n**2. Escopo:**\n[O que está incluído]\n\n**3. Requisitos Funcionais:**\n- [RF-01]',
+        prototypeLink: data.documentation?.prototypeLink || '',
+        isSigned: false
+      },
+      isArchived: false,
+      tasks: []
+    };
+    setProjects([newProject, ...projects]);
+    setAlertMessage(`Projeto ${newProject.id} criado com sucesso!`);
+  };
+
   const handleCreateUser = (data: Partial<User>) => {
     const newUser: User = {
       id: `USR-${Date.now()}`,
       name: data.name || '',
       email: data.email || '',
       role: data.role || UserRole.MANAGER,
+      queue: data.queue,
       companyIds: data.companyIds || [],
       isActive: true,
       createdAt: new Date()
     };
     setUsers([...users, newUser]);
-    setAlertMessage('Responsável cadastrado com sucesso!');
+    setAlertMessage('Usuário cadastrado com sucesso!');
   };
 
   const handleUpdateUser = (id: string, updates: Partial<User>) => {
@@ -957,12 +1074,14 @@ const App: React.FC = () => {
               <div className="flex items-center space-x-2 border-l border-slate-200 pl-2 md:pl-4">
                 <span className="hidden lg:inline text-xs text-slate-500 font-medium">Simular Acesso:</span>
                 <select 
-                  className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-500 w-32 md:w-auto"
+                  className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-brand-500 max-w-xs font-medium text-slate-700"
                   value={currentUserId}
                   onChange={e => setCurrentUserId(e.target.value)}
                 >
                   {users.map(u => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    <option key={u.id} value={u.id}>
+                      {u.name} — {u.role}{u.queue ? ` (${u.queue.split(' - ')[0]})` : ''}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1035,7 +1154,7 @@ const App: React.FC = () => {
               {showGovernance && <Route path="/governance" element={<GovernanceView tickets={activeTickets} />} />}
               {showAnnouncements && <Route path="/announcements" element={<AnnouncementsView announcements={announcements} currentUser={currentUser} onCreate={handleCreateAnnouncement} onDelete={handleDeleteAnnouncement} />} />}
               {showSettings && <Route path="/settings" element={<SettingsView settings={appSettings} onUpdateSettings={setAppSettings} />} />}
-              {showUsers && <Route path="/users" element={<UsersView users={users} companies={companies} onCreate={handleCreateUser} onUpdate={handleUpdateUser} />} />}
+              {showUsers && <Route path="/users" element={<UsersView users={users} companies={companies} queues={queues} onCreate={handleCreateUser} onUpdate={handleUpdateUser} />} />}
               {showQueues && <Route path="/queues" element={<QueuesView queues={queues} tickets={tickets} onCreate={handleCreateQueue} onUpdate={handleUpdateQueue} />} />}
               
               {/* Default fallback if a user has no access to the base route */}

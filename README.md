@@ -84,10 +84,24 @@ O sistema implementa uma política estrita de segregação de níveis de suporte
 Perfis configuráveis com controle de visibilidade de menus e permissões:
 - **Administrador (Admin)**: acesso irrestrito a configurações, governança e relatórios.
 - **Responsável (Manager)**: visualização restrita às empresas pelas quais responde.
-- **N1**: focado na triagem e resolução de primeiro nível.
-- **N2**: atendimento técnico intermediário e infraestrutura.
-- **N3**: especialistas seniores, focado em incidentes complexos e projetos.
-- **Desenvolvimento (Dev)**: sustentação de código e esteira de projetos.
+- **N1**: focado na triagem e resolução de primeiro nível na Fila N1.
+- **N2**: atendimento técnico intermediário e suporte de infraestrutura na Fila N2.
+- **N3**: especialistas seniores, focado em incidentes complexos, banco de dados e projetos na Fila N3.
+- **Desenvolvimento (Dev)**: sustentação de código e esteira de projetos na Fila de Desenvolvimento.
+
+#### Usuários Pré-configurados no Sistema:
+| Nome | Email | Perfil | Fila / Vínculo |
+| :--- | :--- | :--- | :--- |
+| **Admin Master** | `admin@sistema.com` | Administrador | Todas as Filas (Acesso Global) |
+| **Carlos Mendes** | `carlos.n1@sistema.com` | N1 | Fila N1 - Suporte Nível 1 |
+| **Mariana Costa** | `mariana.n2@sistema.com` | N2 | Fila N2 - Suporte Nível 2 |
+| **Roberto Rocha** | `roberto.n3@sistema.com` | N3 | Fila N3 - Especialistas |
+| **Lucas Ferreira** | `lucas.dev@sistema.com` | Desenvolvimento | Fila Desenvolvimento |
+| **João Silva** | `joao.silva@alpha.com` | Responsável | Alpha Corp |
+| **Beatriz Ramos** | `beatriz.ramos@beta.com` | Responsável | Beta Soft |
+| **Gabriel Torres** | `gabriel.torres@gamma.com` | Responsável | Gamma Logistics |
+
+*Dica: Você pode alternar instantaneamente entre qualquer um desses usuários pelo seletor **"Simular Acesso"** no cabeçalho superior.*
 
 ### 8. Central de Avisos & Notificações
 - Publicação de comunicados corporativos e alertas de manutenção com direcionamento por perfil de usuário.

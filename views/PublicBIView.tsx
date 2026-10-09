@@ -42,12 +42,18 @@ const PublicBIView: React.FC<PublicBIViewProps> = ({ tickets, projects, users, c
       filtered = filtered.filter(t => new Date(t.createdAt) >= cutoff);
     }
     
+    // Filter by company
     if (selectedCompany !== 'all') {
-      filtered = filtered.filter(t => t.companyId === selectedCompany);
+      const companyObj = companies.find(c => c.id === selectedCompany);
+      const companyName = companyObj?.name || selectedCompany;
+      filtered = filtered.filter(t => t.company === companyName || (t as any).companyId === selectedCompany);
     }
     
+    // Filter by assignee
     if (selectedAssignee !== 'all') {
-      filtered = filtered.filter(t => t.assigneeId === selectedAssignee);
+      const userObj = users.find(u => u.id === selectedAssignee);
+      const userName = userObj?.name || selectedAssignee;
+      filtered = filtered.filter(t => t.assignedTo === userName || t.assignedTo?.includes(userName) || (t as any).assigneeId === selectedAssignee);
     }
     
     return filtered;
@@ -67,6 +73,25 @@ const PublicBIView: React.FC<PublicBIViewProps> = ({ tickets, projects, users, c
       counts[t.priority] = (counts[t.priority] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value })).filter(item => item.value > 0);
+  }, [filteredTickets]);
+
+  const ticketsByQueue = useMemo(() => {
+    const queueMap: Record<string, number> = {
+      'Fila N1': 0,
+      'Fila N2': 0,
+      'Fila N3': 0,
+      'Outras': 0
+    };
+
+    filteredTickets.forEach(t => {
+      const q = t.status === TicketStatus.OPEN ? 'N1' : (t.queue || 'N1');
+      if (q.includes('N1')) queueMap['Fila N1']++;
+      else if (q.includes('N2')) queueMap['Fila N2']++;
+      else if (q.includes('N3')) queueMap['Fila N3']++;
+      else queueMap['Outras']++;
+    });
+
+    return Object.entries(queueMap).map(([name, value]) => ({ name, value })).filter(item => item.value > 0);
   }, [filteredTickets]);
 
   const ticketsByMonth = useMemo(() => {
@@ -227,6 +252,27 @@ const PublicBIView: React.FC<PublicBIViewProps> = ({ tickets, projects, users, c
                   <RechartsTooltip />
                   <Legend />
                 </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Queue Chart */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 print:shadow-none print:border-slate-300 print:break-inside-avoid">
+            <h3 className="text-lg font-bold text-slate-800 mb-6">Carga por Nível / Fila (ITIL)</h3>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={ticketsByQueue}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <RechartsTooltip cursor={{fill: 'transparent'}} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {ticketsByQueue.map((entry, index) => {
+                      const queueColor = entry.name.includes('N1') ? '#0284c7' : entry.name.includes('N2') ? '#d97706' : entry.name.includes('N3') ? '#7c3aed' : '#64748b';
+                      return <Cell key={`cell-q-${index}`} fill={queueColor} />;
+                    })}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>

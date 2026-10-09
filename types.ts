@@ -159,6 +159,7 @@ export interface User {
   createdAt: Date;
   accessCount?: number;
   themeColor?: string;
+  queue?: string; // Fila de atendimento vinculada (ex: N1, N2, N3, DEV)
 }
 
 export interface Announcement {
